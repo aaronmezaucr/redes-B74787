@@ -1,0 +1,3 @@
+NombreConjunto1 50
+NombreConjunto2 12
+NombreConjunto3 200
