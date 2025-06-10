@@ -1,3 +1,4 @@
-NombreConjunto1 50
-NombreConjunto2 12
-NombreConjunto3 200
+A 400
+B 1000
+C 70
+D 20

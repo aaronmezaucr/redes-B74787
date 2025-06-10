@@ -27,50 +27,18 @@ static void ascendingAssignment(
     std::vector<request>& requestsList
 ) {
     uint32_t cursor = networkAddress;
-    for (auto &s : requestsList) {
-        uint32_t mask = prefixToMask(s.prefix);
-        uint32_t subnetAddress = cursor & mask;
-
-        if (subnetAddress < cursor) {
-            uint32_t nextJump = (1u << (32 - s.prefix));
-            subnetAddress = ((cursor >> (32 - s.prefix)) + 1) << (32 - s.prefix);
-        }
-        
-        if (subnetAddress + s.subnetSize - 1 > (networkAddress + blockSize - 1)) {
-            throw std::runtime_error("Insufficient space for subnet: " + std::to_string(s.hostsNumber));
-        }
-        s.assignedIP = subnetAddress;
-        cursor = subnetAddress + s.subnetSize;
-    }
-}
-
-static void descendingAssignment(
-    uint32_t networkAddress,
-    uint8_t basePrefix,
-    uint32_t blockSize,
-    std::vector<request>& requestsList
-) {
     uint32_t blockEnd = networkAddress + blockSize - 1;
-    uint32_t cursorStop = blockEnd;
 
     for (auto &s : requestsList) {
-        uint32_t ipNetCandidate = cursorStop - (s.subnetSize - 1);
-        uint32_t mask = prefixToMask(s.prefix);
-        uint32_t subnetAddress = ipNetCandidate & mask;
-        uint32_t broadcast =  subnetAddress + s.subnetSize - 1;
-
-        if (broadcast > blockEnd) {
-            uint32_t jump = (1u << (32 - s.prefix));
-            subnetAddress = ((ipNetCandidate >> (32 - s.prefix)) - 1) << (32 - s.prefix);
-            broadcast = subnetAddress + s.subnetSize - 1;
-        }
-        if ( subnetAddress < networkAddress) {
+        if (cursor + s.subnetSize - 1 > blockEnd) {
             throw std::runtime_error("Insufficient space for subnet: " + std::to_string(s.hostsNumber));
         }
-        s.assignedIP = subnetAddress;
-        cursorStop = subnetAddress - 1;
+        s.assignedIP = cursor;
+        cursor += s.subnetSize;
     }
 }
+
+
 
 void processRequests(
     uint32_t networkAddress,
@@ -80,19 +48,22 @@ void processRequests(
 ) {
     calculatePrefix(requestsList);
 
-    std::sort(requestsList.begin(), requestsList.end(),
-              [](auto& a, auto& b) {
-                  return a.subnetSize < b.subnetSize;
-              });
-
-    uint32_t blockSize = (1U << (32 - basePrefix));
-
     if (mode == "ascending") {
-        ascendingAssignment(networkAddress, basePrefix, blockSize, requestsList);
+        // Ordenar de menor a mayor tamaño para que las subredes pequeñas estén primero
+        std::sort(requestsList.begin(), requestsList.end(),
+                  [](auto& a, auto& b) {
+                      return a.subnetSize < b.subnetSize;
+                  });
     } else if (mode == "descending") {
-        descendingAssignment(networkAddress, basePrefix, blockSize, requestsList);
+        // Ordenar de mayor a menor tamaño para que las subredes grandes estén primero
+        std::sort(requestsList.begin(), requestsList.end(),
+                  [](auto& a, auto& b) {
+                      return a.subnetSize > b.subnetSize;
+                  });
     } else {
         throw std::runtime_error("Invalid mode: " + mode);
     }
 
+    uint32_t blockSize = (1U << (32 - basePrefix));
+    ascendingAssignment(networkAddress, basePrefix, blockSize, requestsList);
 }
