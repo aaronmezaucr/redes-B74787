@@ -23,4 +23,5 @@ Y para subneteo descendente (IP más alta con el conjunto más grande):
 # Ejemplo de la salida
 - Archivo con red base: baseNetwork.txt
 - Archivo con solicitudes: requests.txt
+
 ![alt text](images/image.png)
