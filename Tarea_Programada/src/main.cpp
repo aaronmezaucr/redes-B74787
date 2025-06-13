@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <iomanip>
 
 #include "utils.h"
 #include "subnetting.h"
@@ -69,21 +70,50 @@ int main(int argc, char* argv[]) {
                       return a.entry_ID < b.entry_ID;
                   });
 
-        // Mostrar resultados
-        std::cout << "Name | Hosts | Network Address | Mask | Broadcast" << std::endl;
-        std::cout << "------------------------------------------------" << std::endl;
+       // Encabezado formateado con setw y left/right
+        std::cout 
+        << std::left  << std::setw(8) << "Name" 
+        << " | " << std::right << std::setw(8) << "Requested" 
+        << " | " << std::setw(8) << "Assigned" 
+        << " | " << std::left  << std::setw(18) << "Network" 
+        << " | " << std::setw(15) << "Mask" 
+        << " | " << std::setw(21) << "Host range" 
+        << " | " << "Broadcast"
+        << "\n";
+
+        // Línea de separación (ajusta el número según la suma de anchuras + separadores)
+        std::cout << std::string(8 + 3 + 4 + 3 + 4 + 3 + 18 + 3 + 15 + 3 + 21 + 3 + 9, '-') << "\n";
+
         for (const auto& s : requestsList) {
+            // IP de red y máscara
             std::string networkAddressStr = uintToIP(s.assignedIP);
-            uint32_t mask = prefixToMask(s.prefix);
-            std::string maskStr = maskToString(mask);
+            std::string cidrStr           = networkAddressStr + "/" + std::to_string(s.prefix);
+            uint32_t mask                 = prefixToMask(s.prefix);
+            std::string maskStr           = maskToString(mask);
+
+            // Broadcast
             uint32_t broadcast = s.assignedIP + s.subnetSize - 1;
             std::string broadcastStr = uintToIP(broadcast);
-            
-            std::cout << s.name << " | "
-                      << s.hostsNumber << " | "
-                      << networkAddressStr << "/" << static_cast<int>(s.prefix) << " | "
-                      << maskStr << " | "
-                      << broadcastStr << std::endl;
+
+            // Hosts
+            uint32_t requestedHosts = s.hostsNumber;
+            uint32_t assignedHosts  = s.subnetSize - 2;
+
+            // Rango de hosts utilizable
+            uint32_t firstHost = s.assignedIP + 1;
+            uint32_t lastHost  = broadcast - 1;
+            std::string hostRangeStr = uintToIP(firstHost) + " - " + uintToIP(lastHost);
+
+            // Imprime todas las columnas
+            std::cout
+                << std::left << std::setw(8)  << s.name
+                << " | " << std::right << std::setw(8)  << requestedHosts
+                << " | " << std::setw(8)  << assignedHosts
+                << " | " << std::setw(18) << cidrStr
+                << " | " << std::setw(15) << maskStr
+                << " | " << std::setw(21) << hostRangeStr
+                << " | " << broadcastStr
+                << "\n";
         }
 
     } catch (const std::runtime_error& e) {
