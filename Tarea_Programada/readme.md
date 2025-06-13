@@ -9,11 +9,13 @@ Para compilar el programa, se debe abrir la carpeta Tarea_Programada en terminal
 
 ## Ejecución
 
-Para ejecutar el programa, se debe ejecutar con 2 parametros, siendo el primero el nombre del archivo con la red que se desea subnetear y el segundo el con el nombre del archivo con las solicitudes. En la carpeta test se brindan archivos de prueba. El comando que se debe ejecutar para subneteo ascendente es:
+Para ejecutar el programa, se debe ejecutar con 2 parametros, siendo el primero el nombre del archivo con la red que se desea subnetear y el segundo el con el nombre del archivo con las solicitudes. En la carpeta test se brindan archivos de prueba.
+
+El comando que se debe ejecutar para subneteo ascendente (IP más baja con el conjunto más grande) es:
 
     ./bin/subnetting tests/baseNetwork.txt tests/requests.txt ascending
 
-Y para subneteo descendente:
+Y para subneteo descendente (IP más alta con el conjunto más grande):
 
     ./bin/subnetting tests/baseNetwork.txt tests/requests.txt descending
 
